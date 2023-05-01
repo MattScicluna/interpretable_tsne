@@ -1,1 +1,6 @@
 .ipynb_checkpoints/
+build/
+dist/
+*.c
+src/interpretable_tsne.egg-info/
+__pycache__

@@ -1,0 +1,7 @@
+include src/interpretable_tsne/_quad_tree.pxd
+include src/interpretable_tsne/_quad_tree.pyx
+include src/interpretable_tsne/_utils.pxd
+include src/interpretable_tsne/_utils.pyx
+include src/interpretable_tsne/_barnes_hut_tsne.pyx
+include src/interpretable_tsne/_grad_comps.pyx
+include src/interpretable_tsne/_bintree.pyx

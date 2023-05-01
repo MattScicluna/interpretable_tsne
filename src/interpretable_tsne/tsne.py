@@ -26,9 +26,9 @@ from sklearn.utils.validation import _deprecate_positional_args
 from sklearn.decomposition import PCA
 from sklearn.metrics.pairwise import pairwise_distances
 
-from _bintree import _binary_search_perplexity
-from _barnes_hut_tsne import gradient
-from _grad_comps import compute_p_gradient, compute_attr
+from ._bintree import _binary_search_perplexity
+from ._barnes_hut_tsne import gradient
+from ._grad_comps import compute_p_gradient, compute_attr
 
 MACHINE_EPSILON = np.finfo(np.double).eps
 #sys.tracebacklimit = 0
