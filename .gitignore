@@ -4,3 +4,4 @@ dist/
 *.c
 src/interpretable_tsne.egg-info/
 __pycache__
+*.so

@@ -5,10 +5,41 @@ Interpretable t-SNE
 
 `interpretable_tsne` is an implementation of our gradient-based attributiont technique described in our GLBIO oral presentation: 'Towards Computing Attributions for Dimensionality Reduction Techniques'.
 
+---
+
 Installation
 ------------
 
 `interpretable_tsne` requires Python 3.8 or higher to run. It is only available on Linux operating systems.
 
+### TestPyPi
+
 This code can be installed via TestPyPi using the following command:
-```pip install -i https://test.pypi.org/simple/ interpretable-tsne```
+
+    ```pip install -i https://test.pypi.org/simple/ interpretable-tsne```
+
+### Source
+
+You can install `interpretable_tsne` from source. Just clone this repository and run the following line in the root directory:
+
+    ```pip install .```
+
+Run the unittests
+
+    ```python -m unittest -v tests/*.py```
+
+---
+
+Citation
+--------
+
+If you use `interpretable_tsne` in your work, please cite us:
+
+```
+    @article {scicluna_interp_tsne,
+        author = Scicluna, M., Grenier, JC., Poujol, R., Lemieux, S., Hussin, J.
+        title = {Towards Computing Attributions for Dimensionality Reduction Techniques},
+        year = {2023},
+        publisher = {Great Lakes Bioinformatics Conference},
+    }
+```

@@ -1,6 +1,5 @@
 '''
-This unittest tests the t-SNE gradient computations (Cython)
-versus graidents computed using only numpy computatations
+This unittest tests the Barnes-Hut approximation of the t-SNE gradient computations
 '''
 
 import unittest
@@ -11,8 +10,7 @@ from scipy.sparse import csr_matrix
 import numpy as np
 
 #from _grad_comps import *
-from src.interpretable_tsne.tsne import _joint_probabilities_nn, _compute_dp_bh, _compute_attr_bh, _kl_divergence_bh
-from src.interpretable_tsne._grad_comps import _compute_q_phi_debug
+from src.interpretable_tsne.tsne import pairwise_distances, _joint_probabilities, _compute_dp, _openmp_effective_n_threads, _joint_probabilities_nn, _compute_dp_bh, NearestNeighbors
 
 
 class Test_compute_dp_bh(unittest.TestCase):
@@ -53,43 +51,48 @@ class Test_compute_dp_bh(unittest.TestCase):
         self.P = P
         self.P_ji = P_ji
 
-    def test_P(self):
-        # compute P the long way
+    def test_dP(self):
+        
+        data, perplexity=30
+        n_samples = data.shape[0]
+        distances = pairwise_distances(data, metric="euclidean", squared=True)
+        P, conditional_P, betas = _joint_probabilities(distances, perplexity, verbose=2)
+        _, dP = _compute_dp(data, conditional_P, P, betas)
 
-        # first compute dij = || x_i - x_j ||^2
-        # This is numpy way of computing array
-        d_ij = ((np.expand_dims(self.X, 1)-np.expand_dims(self.X, 0)))
-        d_ij = (d_ij**2).sum(2)
+        n_neighbors = min(n_samples - 1, int(3. * perplexity + 1))
 
-        # This is using sparse computations
-        d_ij_nn = np.array(self.distances_nn.todense())
+        # Find the nearest neighbors for every point
+        knn = NearestNeighbors(algorithm='auto',
+                               n_jobs=8,
+                               n_neighbors=n_neighbors,
+                               metric="euclidean")
+        knn.fit(data)
+        distances_nn = knn.kneighbors_graph(mode='distance')
 
-        # Lets check that these two ways give the same matrix (for non-zero entries)!
-        self.assertTrue(((~np.isclose(d_ij, d_ij_nn) & (d_ij_nn != 0.0))).mean() == 0, 
-                        'distances using sparse computations do not match usual (euclidean) ones!')
+        # Free the memory used by the ball_tree
+        del knn
 
-        # second we check that P_j|i is the same
-        P_ji = np.exp(-d_ij_nn*np.expand_dims(self.betas, 1)) * (d_ij_nn != 0)
+        distances_nn.data **= 2
 
-        # Check that P_ji really is P_j|i using our formula
-        # We will pick a random i,j and compute by hand
-        # this means that we must check that:
-        # P_ji[i, j] = P_j|i = exp(-||x_i-x_j||*beta_i)
+        # compute the joint probability distribution for the input space
+        P2, conditional_P2, betas2 = _joint_probabilities_nn(distances_nn,
+                                                          perplexity,
+                                                          2)
 
-        # get random column (j) position (assume i = row = 0)
-        i1 = self.P_ji.indices[0]
-        self.assertTrue(np.isclose(P_ji[0, i1], np.exp(-((self.X[0]-self.X[i1])**2).sum()*self.betas[0])), 
-                        '(unnormalized) value of P_j|i  from `_joint_probabilities_nn` does not match hand calculation for i=0, j={}'.format(i1))
+        # compute dP
+        _, dP2 = _compute_dp_bh(data,
+                               conditional_P2,
+                               P2,
+                               betas2,
+                               max(2 - 1, 1),  # degrees of freedom (see below for
+                               _openmp_effective_n_threads())
 
-        P_ji /= np.expand_dims(P_ji.sum(1), 1)
 
-        # Lets check for the full matrix
-        self.assertTrue(np.isclose(P_ji, self.P_ji.todense()).mean() == 1, 
-                        'P_j|i matrix from `_joint_probabilities_nn` does not match hand computed one!')
-
-        # Finally, lets make sure P matches
-        self.assertTrue(np.isclose((P_ji + P_ji.T)/(2*1000), self.P.todense()).mean(),  
-                        'P matrix from `_joint_probabilities_nn` does not match hand computed one!')
+        dense_mats = [csr_matrix((dP2[:,i], P2.indices, P2.indptr), shape=(n_samples, n_samples)).toarray() for i in range(data.shape[1])]
+        dP3 = np.stack(dense_mats)
+        dP3 = dP3.transpose(1, 2, 0)
+        #dP3 = dP3.reshape(n_samples, n_samples, data.shape[1])
+        return dP, dP3, P, P2
 
     def test_dP(self):
 
