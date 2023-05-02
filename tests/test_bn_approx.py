@@ -21,7 +21,11 @@ class Test_compute_dp_bh(unittest.TestCase):
         np.random.seed(seed=42)
 
         perplexity = 30
-        X = np.random.randn(1000, 50)
+
+        # load sample MNIST data
+        file = np.load('tests/MNIST_test_data.npz', allow_pickle=True)
+        X = file['X_reduced']
+        X = X[:2000]
         n_neighbors = min(1000 - 1, int(3. * perplexity + 1))
 
         # Find the nearest neighbors for every point
@@ -34,6 +38,8 @@ class Test_compute_dp_bh(unittest.TestCase):
         del knn
         distances_nn.data **= 2
         self.distances_nn = distances_nn
+        
+        # Compute the affinities matrix with and without Barnes-Hut approximation
 
         P, P_ji, betas = _joint_probabilities_nn(distances_nn, perplexity, True)
 
