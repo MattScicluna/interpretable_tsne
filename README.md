@@ -3,7 +3,9 @@ Interpretable t-SNE
 
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-`interpretable_tsne` is an implementation of our gradient-based attributiont technique described in our GLBIO oral presentation: 'Towards Computing Attributions for Dimensionality Reduction Techniques'.
+`interpretable_tsne` is an implementation of our gradient-based attributiont technique described in our GLBIO oral presentation: 'Towards Computing Attributions for Dimensionality Reduction Techniques'. 
+
+To replicate the experiments we performed in our presentation, go to: [MattScicluna/interpretable_tsne_experiment](https://github.com/MattScicluna/interpretable_tsne_experiment)
 
 ---
 
@@ -16,17 +18,17 @@ Installation
 
 This code can be installed via TestPyPi using the following command:
 
-    ```pip install -i https://test.pypi.org/simple/ interpretable-tsne```
+    pip install -i https://test.pypi.org/simple/ interpretable-tsne
 
 ### Source
 
 You can install `interpretable_tsne` from source. Just clone this repository and run the following line in the root directory:
 
-    ```pip install .```
+    pip install .
 
 Run the unittests
 
-    ```python -m unittest -v tests/*.py```
+    python -m unittest -v tests/*.py
 
 ---
 
