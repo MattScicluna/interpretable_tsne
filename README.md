@@ -7,7 +7,10 @@ Interpretable t-SNE
 
 To replicate the experiments we performed in our presentation, go to: [MattScicluna/interpretable_tsne_experiment](https://github.com/MattScicluna/interpretable_tsne_experiment)
 
-See [our pre-print](https://www.biorxiv.org/content/10.1101/2023.05.12.540592v1) for details of how the algorithm works.
+Synthetic data experiment demonstrating that our t-SNE attributions can identify the ground truth significant features. See [our pre-print](https://www.biorxiv.org/content/10.1101/2023.05.12.540592v1) for more details.
+
+https://github.com/MattScicluna/interpretable_tsne/assets/19255250/789c075c-44fd-48ef-9264-e7dca60a59ce
+
 
 ---
 
