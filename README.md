@@ -7,6 +7,8 @@ Interpretable t-SNE
 
 To replicate the experiments we performed in our presentation, go to: [MattScicluna/interpretable_tsne_experiment](https://github.com/MattScicluna/interpretable_tsne_experiment)
 
+See [our pre-print](https://www.biorxiv.org/content/10.1101/2023.05.12.540592v1) for details of how the algorithm works.
+
 ---
 
 Installation
@@ -38,10 +40,17 @@ Citation
 If you use `interpretable_tsne` in your work, please cite us:
 
 ```
-    @article {scicluna_interp_tsne,
-        author = Scicluna, M., Grenier, JC., Poujol, R., Lemieux, S., Hussin, J.
+    @article {Scicluna2023.05.12.540592,
+        author = {Matthew Crispin Scicluna and Jean-Christophe Grenier and Raphael Poujol and Sebastien Lemieux and Julie Hussin},
         title = {Towards Computing Attributions for Dimensionality Reduction Techniques},
+        elocation-id = {2023.05.12.540592},
         year = {2023},
-        publisher = {Great Lakes Bioinformatics Conference},
+        doi = {10.1101/2023.05.12.540592},
+        publisher = {Cold Spring Harbor Laboratory},
+        URL = {https://www.biorxiv.org/content/early/2023/05/14/2023.05.12.540592},
+        eprint = {https://www.biorxiv.org/content/early/2023/05/14/2023.05.12.540592.full.pdf},
+        journal = {bioRxiv}
     }
 ```
+
+[def]: assets/synth_data_gradients.mp4
