@@ -592,6 +592,9 @@ def _gradient_descent(objective, attr_function, p0, dP, dYx, diYx, attr_style, c
             ddYx, pos_array, neg_array = attr_function(p, qt, sumQ, dYx, dP, *args, **attr_args)
         else:
             ddYx, pos_array, neg_array = None, None, None
+        
+        # clip gradient updates at each step to avoid numeric instability
+        np.clip(ddYx, -1, 1, out=ddYx)
 
         grad_norm = linalg.norm(grad)
 
@@ -1081,10 +1084,6 @@ class TSNE(BaseEstimator):
             raise ValueError("'init' must be 'pca', 'random', or "
                              "a numpy array")
 
-        # pca initialization affects gradient interpretation! Will disable for now!
-        #if self.attr != 'none':
-        #    assert self.init == 'random', "Attribution computation only makes sense with random initialization!"
-
         # Degrees of freedom of the Student's t-distribution. The suggestion
         # degrees_of_freedom = n_components - 1 comes from
         # "Learning a Parametric Embedding by Preserving Local Structure"
@@ -1108,6 +1107,7 @@ class TSNE(BaseEstimator):
         # we use is batch gradient descent with two stages:
         # * initial optimization with early exaggeration and momentum at 0.5
         # * final optimization with momentum at 0.8
+
         params = X_embedded.ravel()
 
         opt_args = {

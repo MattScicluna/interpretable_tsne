@@ -428,7 +428,8 @@ cdef class _QuadTree:
         # If it can be summarized, we use the cell center of mass
         # Otherwise, we go a higher level of resolution and into the leaves.
         if cell.is_leaf or (
-                (cell.squared_max_width / results[idx_d]) < squared_theta):
+                #(cell.squared_max_width / results[idx_d]) < squared_theta): # avoid divide by 0 error!
+                (cell.squared_max_width / (results[idx_d] + 1e-32)) < squared_theta): # avoid divide by 0 error!
             results[idx_d + 1] = <DTYPE_t> cell.cumulative_size
             return idx + self.n_dimensions + 2
 
