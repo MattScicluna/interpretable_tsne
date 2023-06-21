@@ -19,11 +19,11 @@ Installation
 
 `interpretable_tsne` requires Python 3.8 or higher to run. It is only available on Linux operating systems.
 
-### TestPyPi
+### PyPi
 
-This code can be installed via TestPyPi using the following command:
+This code can be installed via pip using the following command:
 
-    pip install -i https://test.pypi.org/simple/ interpretable-tsne
+    pip install interpretable_tsne
 
 ### Source
 
