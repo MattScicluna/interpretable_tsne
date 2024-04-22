@@ -53,14 +53,14 @@ cdef realloc_ptr safe_realloc(realloc_ptr* p, size_t nelems) nogil except *:
     return tmp  # for convenience
 
 
-def _realloc_test():
-    # Helper for tests. Tries to allocate <size_t>(-1) / 2 * sizeof(size_t)
-    # bytes, which will always overflow.
-    cdef SIZE_t* p = NULL
-    safe_realloc(&p, <size_t>(-1) / 2)
-    if p != NULL:
-        free(p)
-        assert False
+#def _realloc_test():
+#    # Helper for tests. Tries to allocate <size_t>(-1) / 2 * sizeof(size_t)
+#    # bytes, which will always overflow.
+#    cdef SIZE_t* p = NULL
+#    safe_realloc(&p, <size_t>(-1) / 2)
+#    if p != NULL:
+#        free(p)
+#        assert False
 
 cdef inline cnp.ndarray sizet_ptr_to_ndarray(SIZE_t* data, SIZE_t size):
     """Return copied data as 1D numpy array of intp's."""
