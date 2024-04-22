@@ -590,12 +590,12 @@ def _gradient_descent(objective, attr_function, p0, dP, dYx, diYx, attr_style, c
         # Compute dQ, dPhi, Phi
         if attr_style != 'none':
             ddYx, pos_array, neg_array = attr_function(p, qt, sumQ, dYx, dP, *args, **attr_args)
+
+            # clip gradient updates at each step to avoid numeric instability
+            np.clip(ddYx, -1, 1, out=ddYx)
         else:
             ddYx, pos_array, neg_array = None, None, None
         
-        # clip gradient updates at each step to avoid numeric instability
-        np.clip(ddYx, -1, 1, out=ddYx)
-
         grad_norm = linalg.norm(grad)
 
         inc = update * grad < 0.0
@@ -777,6 +777,10 @@ class TSNE(BaseEstimator):
         very critical. If the cost function increases during initial
         optimization, the early exaggeration factor or the learning rate
         might be too high.
+    exaggeration : float, optional (default: 1.0)
+        Same as early_exaggeration but applied to later stages of t-SNE.
+        There are works showing that modifying this term can make t-SNE 
+        look like UMAP and Laplacian Eigenmaps. See umap.UMAP for details.
     learning_rate : float, optional (default: 200.0)
         The learning rate for t-SNE is usually in the range [10.0, 1000.0]. If
         the learning rate is too high, the data may look like a 'ball' with any
@@ -894,7 +898,7 @@ class TSNE(BaseEstimator):
 
     @_deprecate_positional_args
     def __init__(self, n_components=2, *, perplexity=30.0,
-                 early_exaggeration=12.0, learning_rate=200.0, n_iter=1000,
+                 early_exaggeration=12.0, exaggeration=1.0, learning_rate=200.0, n_iter=1000,
                  n_iter_without_progress=300, min_grad_norm=1e-7,
                  metric="euclidean", init="random", verbose=0,
                  random_state=None, method='barnes_hut', angle=0.5,
@@ -902,6 +906,7 @@ class TSNE(BaseEstimator):
         self.n_components = n_components
         self.perplexity = perplexity
         self.early_exaggeration = early_exaggeration
+        self.exaggeration = exaggeration
         self.learning_rate = learning_rate
         self.n_iter = n_iter
         self.n_iter_without_progress = n_iter_without_progress
@@ -1069,17 +1074,31 @@ class TSNE(BaseEstimator):
             else:
                 dP = None
 
+        if self.attr != 'none':
+            self.attr_shape = [self.n_components, n_samples, dP.shape[-1]]
         if isinstance(self.init, np.ndarray):
             X_embedded = self.init
         elif self.init == 'pca':
             pca = PCA(n_components=self.n_components, svd_solver='randomized',
                       random_state=random_state)
             X_embedded = pca.fit_transform(X).astype(np.float32, copy=False)
+
+            # PCA is rescaled so that PC1 has standard deviation 1e-4 which is
+            # the default value for random initialization. See issue #18018.
+            X_embedded = X_embedded / np.std(X_embedded[:, 0]) * 1e-4
+
+            # store this for attribution calculations
+            # Note that this will be the identity matrix when input is PCA transformed
+            # It will be the unscaled loadings matrix otherwise
+            if self.attr != 'none':
+                self.attr_init = np.stack([pca.components_]*n_samples, 1)
         elif self.init == 'random':
             # The embedding is initialized with iid samples from Gaussians with
             # standard deviation 1e-4.
             X_embedded = 1e-4 * random_state.randn(
                 n_samples, self.n_components).astype(np.float32)
+            if self.attr != 'none':
+                self.attr_init = np.zeros(shape=self.attr_shape, dtype=np.float32)
         else:
             raise ValueError("'init' must be 'pca', 'random', or "
                              "a numpy array")
@@ -1145,9 +1164,8 @@ class TSNE(BaseEstimator):
 
         # store intermediate values for attribution computations!
         if self.attr != 'none':
-            attr_shape = [X_embedded.shape[1], X_embedded.shape[0], dP.shape[-1]]
-            dYx = np.zeros(shape=attr_shape, dtype=np.float32)  # (2, 11314, 50)
-            diYx = np.zeros(shape=attr_shape, dtype=np.float32)  # (2, 11314, 50)
+            dYx = np.array(self.attr_init, dtype=np.float32)  # (n_components, n_samples, n_feats)
+            diYx = np.zeros(shape=self.attr_shape, dtype=np.float32)
             #attr_args['dP'] = dP
         else:
             dYx, diYx = None, None
@@ -1182,6 +1200,11 @@ class TSNE(BaseEstimator):
         P /= self.early_exaggeration
         if dP is not None:
             dP /= self.early_exaggeration
+
+        # Now multiply by exaggeration
+        P *= self.exaggeration
+        if dP is not None:
+            dP *= self.exaggeration
 
         remaining = self.n_iter - self._EXPLORATION_N_ITER
         if it < self._EXPLORATION_N_ITER or remaining > 0:

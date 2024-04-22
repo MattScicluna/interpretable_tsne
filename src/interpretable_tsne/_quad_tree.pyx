@@ -32,7 +32,7 @@ CELL_DTYPE = np.asarray(<Cell[:1]>(&dummy)).dtype
 
 assert CELL_DTYPE.itemsize == sizeof(Cell)
 
-from _utils cimport safe_realloc
+from ._utils cimport safe_realloc
 
 
 cdef class _QuadTree:
