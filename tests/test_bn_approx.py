@@ -14,8 +14,8 @@ from scipy.spatial.distance import squareform
 import numpy as np
 
 #from _grad_comps import *
-from src.interpretable_tsne.tsne import pairwise_distances, _joint_probabilities, _compute_dp, _openmp_effective_n_threads, _joint_probabilities_nn, _compute_dp_bh, NearestNeighbors, TSNE
-
+from interpretable_tsne.tsne import pairwise_distances, _joint_probabilities, _compute_dp, _openmp_effective_n_threads, _joint_probabilities_nn, _compute_dp_bh, NearestNeighbors, TSNE
+# src.interpretable_tsne ...
 
 def get_dPs(data, perplexity=30):
     # helper function that computes P, dP for regular and barnes-Hut

@@ -11,9 +11,9 @@ from scipy.sparse import csr_matrix
 import numpy as np
 
 #from _grad_comps import *
-from src.interpretable_tsne.tsne import _joint_probabilities_nn, _compute_dp_bh, _compute_attr_bh, _kl_divergence_bh
-from src.interpretable_tsne._grad_comps import _compute_q_phi_debug
-
+from interpretable_tsne.tsne import _joint_probabilities_nn, _compute_dp_bh, _compute_attr_bh, _kl_divergence_bh
+from interpretable_tsne._grad_comps import _compute_q_phi_debug
+# src.interpretable_tsne ...
 
 class Test_compute_dp_bh(unittest.TestCase):
 
