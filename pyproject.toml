@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel", "Cython", "numpy==1.21"]
+requires = ["setuptools>=61.0", "wheel", "Cython", "numpy>=1.19.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "interpretable_tsne"
-version = "0.0.3"
+version = "0.0.4"
 authors = [
   { name="Matthew Scicluna", email="mattcscicluna@gmail.com" }
 ]
@@ -12,9 +12,9 @@ maintainers = [
   { name="Matthew Scicluna", email="mattcscicluna@gmail.com" }
 ]
 
-description = "Implementation of the gradient-based t-SNE sttribution method described in our GLBIO oral presentation: 'Towards Computing Attributions for Dimensionality Reduction Techniques'"
+description = "Implementation of the gradient-based t-SNE attribution method described in our GLBIO oral presentation: 'Towards Computing Attributions for Dimensionality Reduction Techniques'"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.7"
 license = {file = "COPYING"}
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -22,9 +22,9 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-  'scikit-learn==0.24.1',
-  'scipy==1.7.0',
-  'numpy==1.21',
+  "scikit-learn>=0.23.0",
+  "scipy>=1.5.0",
+  "numpy>=1.19.2"
 ]
 
 [project.urls]

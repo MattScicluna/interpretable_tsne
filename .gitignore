@@ -5,3 +5,4 @@ dist/
 src/interpretable_tsne.egg-info/
 __pycache__
 *.so
+.tox/
