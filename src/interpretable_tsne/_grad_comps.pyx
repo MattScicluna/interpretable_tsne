@@ -9,11 +9,12 @@
 # Licence: BSD 3 clause (C) 2021
 
 import numpy as np
+
 cimport numpy as np
+from cython.parallel cimport parallel, prange
+from libc.math cimport log, sqrt
 from libc.stdio cimport printf
-from libc.math cimport sqrt, log
-from libc.stdlib cimport abort, malloc, free
-from cython.parallel cimport prange, parallel
+from libc.stdlib cimport abort, free, malloc
 
 #from sklearn.neighbors._quad_tree cimport _QuadTree
 from ._quad_tree cimport _QuadTree

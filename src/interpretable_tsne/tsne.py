@@ -10,28 +10,26 @@
 # Licence: BSD 3 clause (C) 2023
 
 from time import time
-import sys
 
 import numpy as np
 from scipy import linalg
-from scipy.spatial.distance import pdist
-from scipy.spatial.distance import squareform
 from scipy.sparse import csr_matrix, issparse
-from sklearn.neighbors import NearestNeighbors
+from scipy.spatial.distance import pdist, squareform
 from sklearn.base import BaseEstimator
-from sklearn.utils import check_random_state
-from sklearn.utils._openmp_helpers import _openmp_effective_n_threads
-from sklearn.utils.validation import check_non_negative
-from sklearn.utils.validation import _deprecate_positional_args
 from sklearn.decomposition import PCA
 from sklearn.metrics.pairwise import pairwise_distances
+from sklearn.neighbors import NearestNeighbors
+from sklearn.utils import check_random_state
+from sklearn.utils._openmp_helpers import _openmp_effective_n_threads
+from sklearn.utils.validation import (_deprecate_positional_args,
+                                      check_non_negative)
 
-from ._bintree import _binary_search_perplexity
 from ._barnes_hut_tsne import gradient
-from ._grad_comps import compute_p_gradient, compute_attr
+from ._bintree import _binary_search_perplexity
+from ._grad_comps import compute_attr, compute_p_gradient
 
 MACHINE_EPSILON = np.finfo(np.double).eps
-#sys.tracebacklimit = 0
+# sys.tracebacklimit = 0
 
 
 def _joint_probabilities(distances, desired_perplexity, verbose):
@@ -120,7 +118,7 @@ def _joint_probabilities_nn(distances, desired_perplexity, verbose):
               .format(duration))
 
     assert np.all(betas < 1000), \
-    "Beta terms have numerically unstable values! Check your data!"
+        "Beta terms have numerically unstable values! Check your data!"
 
     return P, conditional_P, betas
 
@@ -189,8 +187,8 @@ def _compute_attr_bh(Y,
                            num_threads)
 
     # c term does not seem to be included in gradient anyways!
-    #c = 2.0 * (degrees_of_freedom + 1.0) / degrees_of_freedom
-    #new_dYx *= c  # times by 4 in usual scenerio
+    # c = 2.0 * (degrees_of_freedom + 1.0) / degrees_of_freedom
+    # new_dYx *= c  # times by 4 in usual scenerio
 
     return new_dYx
 
@@ -214,33 +212,33 @@ def _compute_attr(Y,
 
     # computes dP/dx * phi
     # (2, N, N, d) -> (2, N, d)
-    pos_array = (np.expand_dims(phi.transpose(2,0,1), 3) * np.expand_dims(dP, 0)).sum(2)
+    pos_array = (np.expand_dims(phi.transpose(2, 0, 1), 3) * np.expand_dims(dP, 0)).sum(2)
 
     # computes dPhi/dy
-    dPhiy = (np.expand_dims(D, axis=(2,3)) * np.expand_dims(np.eye(phi.shape[2], phi.shape[2]), axis=(0,1)))-2*np.expand_dims(phi, 2)*np.expand_dims(phi, 3)
+    dPhiy = (np.expand_dims(D, axis=(2, 3)) * np.expand_dims(np.eye(phi.shape[2], phi.shape[2]), axis=(0, 1))) - 2 * np.expand_dims(phi, 2) * np.expand_dims(phi, 3)
 
     # computes dPhi/dx
     # (N, N, 1, 2, 2) @ (N, 1, d, 1, 2) -> (N, N, d, 2)
     dPhix = (np.expand_dims(dPhiy, 2) @ np.expand_dims(dYx.transpose(1, 2, 0), axis=(1, 4))).squeeze()
 
-    #(num.unsqueeze(2).unsqueeze(2)*(torch.eye(phi.shape[2]).unsqueeze(0).unsqueeze(0).to(device))-2*(phi.unsqueeze(2)*phi.unsqueeze(3)))
-    #DPhix = (DPhiy.unsqueeze(2) @ prev_DYx.permute(1,2,0).unsqueeze(1).unsqueeze(4)).squeeze()
+    # (num.unsqueeze(2).unsqueeze(2)*(torch.eye(phi.shape[2]).unsqueeze(0).unsqueeze(0).to(device))-2*(phi.unsqueeze(2)*phi.unsqueeze(3)))
+    # DPhix = (DPhiy.unsqueeze(2) @ prev_DYx.permute(1,2,0).unsqueeze(1).unsqueeze(4)).squeeze()
 
     # computes (dP/dx * phi + dPhi/dx * P) [this is the positive half of the gradient]
     # (2, N, N, d) x (1, N, N, 1) -> (2, N, d)
-    pos_array += (dPhix.transpose(3, 0, 1, 2) * np.expand_dims(squareform(P), axis=(0,3))).sum(2)
+    pos_array += (dPhix.transpose(3, 0, 1, 2) * np.expand_dims(squareform(P), axis=(0, 3))).sum(2)
 
     # computes negative attr
-    #Q, D, Ydiff, S = _compute_q_phi_debug(Y, qt, 0.5, sumQ, 1)
-    phi = phi.transpose(2,0,1)
+    # Q, D, Ydiff, S = _compute_q_phi_debug(Y, qt, 0.5, sumQ, 1)
+    phi = phi.transpose(2, 0, 1)
 
     Q = D / (D - np.eye(D.shape[0])).sum()
-    dPhixQ = ((dPhix.transpose(3, 0, 1, 2) * np.expand_dims(Q, axis=(0,3)))).sum(2)
+    dPhixQ = (dPhix.transpose(3, 0, 1, 2) * np.expand_dims(Q, axis=(0, 3))).sum(2)
 
     EQy = (np.expand_dims(Q, 0) * phi).sum(2)  # (2, N)
-    dQy = -2*Q*(phi-2*np.expand_dims(EQy, 1))  # (2, N, N)
+    dQy = -2 * Q * (phi - 2 * np.expand_dims(EQy, 1))  # (2, N, N)
     dQx = (np.expand_dims(dYx, 2) * np.expand_dims(dQy, 3)).sum(0)
-    dQxPhi = ((np.expand_dims(dQx, 0) * np.expand_dims(phi, 3))).sum(2)
+    dQxPhi = (np.expand_dims(dQx, 0) * np.expand_dims(phi, 3)).sum(2)
 
     neg_array = dQxPhi + dPhixQ
 
@@ -285,13 +283,13 @@ def _compute_dp(X, conditional_P, P, betas):
     """
     _P_ji = np.expand_dims(conditional_P, 2)
     _P_ij = np.expand_dims(conditional_P.T, 2)
-    dij = -((np.expand_dims(X, 1)-np.expand_dims(X, 0)))*np.expand_dims(np.expand_dims(betas, 1), 1)
-    dji = ((np.expand_dims(X, 1)-np.expand_dims(X, 0)))*np.expand_dims(np.expand_dims(betas, 1), 0)
-    dP_ji = _P_ji*(dij - np.expand_dims((dij*_P_ji).sum(1), 1))
-    dP_ij = dji*_P_ij*(1-_P_ij)
-    dP = (dP_ij + dP_ji)/(2*X.shape[0])
+    dij = -(np.expand_dims(X, 1) - np.expand_dims(X, 0)) * np.expand_dims(np.expand_dims(betas, 1), 1)
+    dji = (np.expand_dims(X, 1) - np.expand_dims(X, 0)) * np.expand_dims(np.expand_dims(betas, 1), 0)
+    dP_ji = _P_ji * (dij - np.expand_dims((dij * _P_ji).sum(1), 1))
+    dP_ij = dji * _P_ij * (1 - _P_ij)
+    dP = (dP_ij + dP_ji) / (2 * X.shape[0])
 
-    EX = (_P_ji*dij).sum(1)
+    EX = (_P_ji * dij).sum(1)
 
     return EX, dP.astype(np.float32, copy=False)
 
@@ -447,24 +445,24 @@ def resolve_attr_value(attr_style, curr_attr, dYx, p, pos_array, neg_array, grad
         if attr_style == 'mean_grad_xy':
             curr_attr += dYx
         elif attr_style == 'mean_grad_norm':
-            curr_attr += np.expand_dims((2*np.expand_dims(p.reshape(dYx.shape[1], -1).T, 2)*dYx).sum(0), 0)
+            curr_attr += np.expand_dims((2 * np.expand_dims(p.reshape(dYx.shape[1], -1).T, 2) * dYx).sum(0), 0)
         elif attr_style == 'kl_obj_mean':
-            #curr_attr += np.abs(np.expand_dims((2*np.expand_dims(grad.reshape(dYx.shape[1], -1).T, 2)*dYx).sum(0), 0))  # With abs value
-            curr_attr += np.expand_dims((2*np.expand_dims(grad.reshape(dYx.shape[1], -1).T, 2)*dYx).sum(0), 0)  # Without abs value
+            # curr_attr += np.abs(np.expand_dims((2*np.expand_dims(grad.reshape(dYx.shape[1], -1).T, 2)*dYx).sum(0), 0))  # With abs value
+            curr_attr += np.expand_dims((2 * np.expand_dims(grad.reshape(dYx.shape[1], -1).T, 2) * dYx).sum(0), 0)  # Without abs value
 
     # non-accumulating attrs only need to be computed at checkpoints
     if at_checkpoint:
         if attr_style == 'grad_xy':
             curr_attr = dYx
         elif attr_style == 'grad_norm':
-            curr_attr = np.expand_dims((2*np.expand_dims(p.reshape(dYx.shape[1], -1).T, 2)*dYx).sum(0), 0)
+            curr_attr = np.expand_dims((2 * np.expand_dims(p.reshape(dYx.shape[1], -1).T, 2) * dYx).sum(0), 0)
         elif attr_style == 'pos_neg_force':
-            curr_attr = np.stack([(2*np.expand_dims(p.reshape(dYx.shape[1], -1).T, 2)*pos_array).sum(0),
-                                  (2*np.expand_dims(p.reshape(dYx.shape[1], -1).T, 2)*neg_array).sum(0)])
+            curr_attr = np.stack([(2 * np.expand_dims(p.reshape(dYx.shape[1], -1).T, 2) * pos_array).sum(0),
+                                  (2 * np.expand_dims(p.reshape(dYx.shape[1], -1).T, 2) * neg_array).sum(0)])
         elif attr_style == 'kl_obj':
-            #curr_attr = np.stack([(2*np.expand_dims(grad.reshape(dYx.shape[1], -1).T, 2)*pos_array).sum(0),
+            # curr_attr = np.stack([(2*np.expand_dims(grad.reshape(dYx.shape[1], -1).T, 2)*pos_array).sum(0),
             #                      (2*np.expand_dims(grad.reshape(dYx.shape[1], -1).T, 2)*neg_array).sum(0)])
-            curr_attr = np.expand_dims((2*np.expand_dims(grad.reshape(dYx.shape[1], -1).T, 2)*dYx).sum(0), 0)
+            curr_attr = np.expand_dims((2 * np.expand_dims(grad.reshape(dYx.shape[1], -1).T, 2) * dYx).sum(0), 0)
 
     return curr_attr
 
@@ -595,7 +593,7 @@ def _gradient_descent(objective, attr_function, p0, dP, dYx, diYx, attr_style, c
             np.clip(ddYx, -1, 1, out=ddYx)
         else:
             ddYx, pos_array, neg_array = None, None, None
-        
+
         grad_norm = linalg.norm(grad)
 
         inc = update * grad < 0.0
@@ -608,26 +606,26 @@ def _gradient_descent(objective, attr_function, p0, dP, dYx, diYx, attr_style, c
         p += update
 
         if attr_style != 'none':
-            diYx = momentum * diYx - learning_rate * np.expand_dims(gains.reshape(ddYx.shape[0],-1), 2) * ddYx
+            diYx = momentum * diYx - learning_rate * np.expand_dims(gains.reshape(ddYx.shape[0], -1), 2) * ddYx
             dYx = dYx + diYx   # need to update dYx to new value!
 
             if ((i % 25) == 0) and (verbose >= 3):
-                print('iter: {}'.format(i))
-                #i1, i2 = np.where(p.reshape(-1,2) == p.max())
-                #print(i1[0], i2[0])
-                #print(p.reshape(-1, 2)[i1[0]-2:i1[0]+2,:])
+                print(f'iter: {i}')
+                # i1, i2 = np.where(p.reshape(-1,2) == p.max())
+                # print(i1[0], i2[0])
+                # print(p.reshape(-1, 2)[i1[0]-2:i1[0]+2,:])
 
-                print("nans in locations (count): {}".format(np.unique(np.where(np.isnan(dYx))[1]).shape[0]))
-                print("dYx. max: {} min: {} median: {}".format(np.nanmax(dYx), np.nanmin(dYx), np.nanmedian(dYx)))
-                print("diYx. max: {} min: {} median: {}".format(np.nanmax(diYx), np.nanmin(diYx), np.nanmedian(diYx)))
-                print("ddYx. max: {} min: {} median: {}".format(np.nanmax(ddYx), np.nanmin(ddYx), np.nanmedian(ddYx)))
-                print("pos. max: {} min: {} median: {}".format(np.nanmax(pos_array), np.nanmin(pos_array), np.nanmedian(pos_array)))
-                print("neg. max: {} min: {} median: {}".format(np.nanmax(neg_array), np.nanmin(neg_array), np.nanmedian(neg_array)))
-                #print(np.unique(np.argwhere(dYx > 1)[:,1]))
-                #print(np.unique(np.argwhere(diYx > 1)[:,1]))
-                #print(np.unique(np.argwhere(ddYx > 1)[:,1]))
-                #print(np.unique(np.argwhere(pos_array > 1)[:,1]))
-                #print(np.unique(np.argwhere(neg_array > 1)[:,1]))
+                print(f"nans in locations (count): {np.unique(np.where(np.isnan(dYx))[1]).shape[0]}")
+                print(f"dYx. max: {np.nanmax(dYx)} min: {np.nanmin(dYx)} median: {np.nanmedian(dYx)}")
+                print(f"diYx. max: {np.nanmax(diYx)} min: {np.nanmin(diYx)} median: {np.nanmedian(diYx)}")
+                print(f"ddYx. max: {np.nanmax(ddYx)} min: {np.nanmin(ddYx)} median: {np.nanmedian(ddYx)}")
+                print(f"pos. max: {np.nanmax(pos_array)} min: {np.nanmin(pos_array)} median: {np.nanmedian(pos_array)}")
+                print(f"neg. max: {np.nanmax(neg_array)} min: {np.nanmin(neg_array)} median: {np.nanmedian(neg_array)}")
+                # print(np.unique(np.argwhere(dYx > 1)[:,1]))
+                # print(np.unique(np.argwhere(diYx > 1)[:,1]))
+                # print(np.unique(np.argwhere(ddYx > 1)[:,1]))
+                # print(np.unique(np.argwhere(pos_array > 1)[:,1]))
+                # print(np.unique(np.argwhere(neg_array > 1)[:,1]))
 
         if check_convergence:
             toc = time()
@@ -662,7 +660,7 @@ def _gradient_descent(objective, attr_function, p0, dP, dYx, diYx, attr_style, c
                 checkpoint_every.pop(0)
                 if attr_style != 'none':
                     return_obj['attrs'].append(attr.copy())
-                #return_obj['embeddings'].append(p.copy().reshape([dYx.shape[1], -1]))
+                # return_obj['embeddings'].append(p.copy().reshape([dYx.shape[1], -1]))
                 return_obj['embeddings'].append(p.copy().reshape([-1, 2]))  # TODO: make this better
         else:
             attr = resolve_attr_value(attr_style, attr, dYx, p, pos_array, neg_array, grad, accumulate=True, at_checkpoint=False)
@@ -673,7 +671,7 @@ def _gradient_descent(objective, attr_function, p0, dP, dYx, diYx, attr_style, c
     #  always add last attr and embedding
     if attr_style != 'none':
         return_obj['attrs'].append(attr)
-    #return_obj['embeddings'].append(p.reshape([dYx.shape[1], -1]))
+    # return_obj['embeddings'].append(p.reshape([dYx.shape[1], -1]))
     return_obj['embeddings'].append(p.copy().reshape([-1, 2]))  # TODO: make this better
 
     return p, error, i, dYx, diYx, return_obj
@@ -726,7 +724,7 @@ def trustworthiness(X, X_embedded, *, n_neighbors=5, metric='euclidean'):
     ind_X = np.argsort(dist_X, axis=1)
     # `ind_X[i]` is the index of sorted distances between i and other samples
     ind_X_embedded = NearestNeighbors(n_neighbors=n_neighbors).fit(
-            X_embedded).kneighbors(return_distance=False)
+        X_embedded).kneighbors(return_distance=False)
 
     # We build an inverted index of neighbors in the input space: For sample i,
     # we define `inverted_index[i]` as the inverted index of sorted distances:
@@ -971,7 +969,7 @@ class TSNE(BaseEstimator):
             raise ValueError("n_iter should be > 250")
 
         if self.attr not in ['none', 'grad_xy', 'grad_norm', 'mean_grad_xy', 'mean_grad_norm', 'pos_neg_force', 'kl_obj', 'kl_obj_mean']:
-             raise ValueError("'attr' must be: 'none', 'grad_xy', 'grad_norm', 'mean_grad_xy', 'mean_grad_norm' or 'pos_neg_force', 'kl_obj', 'kl_obj_mean'")
+            raise ValueError("'attr' must be: 'none', 'grad_xy', 'grad_norm', 'mean_grad_xy', 'mean_grad_norm' or 'pos_neg_force', 'kl_obj', 'kl_obj_mean'")
 
         n_samples = X.shape[0]
 
@@ -1091,7 +1089,7 @@ class TSNE(BaseEstimator):
             # Note that this will be the identity matrix when input is PCA transformed
             # It will be the unscaled loadings matrix otherwise
             if self.attr != 'none':
-                self.attr_init = np.stack([pca.components_]*n_samples, 1)
+                self.attr_init = np.stack([pca.components_] * n_samples, 1)
         elif self.init == 'random':
             # The embedding is initialized with iid samples from Gaussians with
             # standard deviation 1e-4.
@@ -1166,7 +1164,7 @@ class TSNE(BaseEstimator):
         if self.attr != 'none':
             dYx = np.array(self.attr_init, dtype=np.float32)  # (n_components, n_samples, n_feats)
             diYx = np.zeros(shape=self.attr_shape, dtype=np.float32)
-            #attr_args['dP'] = dP
+            # attr_args['dP'] = dP
         else:
             dYx, diYx = None, None
 
@@ -1230,7 +1228,7 @@ class TSNE(BaseEstimator):
             print("[t-SNE] KL divergence after %d iterations: %f"
                   % (it + 1, kl_divergence))
 
-        #X_embedded = params.reshape(n_samples, self.n_components)
+        # X_embedded = params.reshape(n_samples, self.n_components)
         self.kl_divergence_ = kl_divergence
 
         return return_obj

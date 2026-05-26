@@ -1,8 +1,8 @@
 # Author: Matthew Scicluna -- <mattcscicluna@gmail.com>
 # Licence: BSD 3 clause (C) 2023
 
-from .tsne import TSNE
-from .tsne import _deprecate_positional_args
+from .tsne import TSNE, _deprecate_positional_args
+
 
 class UMAP(TSNE):
     r"""UMAP: Uniform Manifold Approximation and Projection for Dimension Reduction.
@@ -14,18 +14,18 @@ class UMAP(TSNE):
     and arguably preserves more of the global structure with superior run time performance. 
     Furthermore, UMAP has no computational restrictions on embedding dimension, 
     making it viable as a general purpose dimension reduction technique for machine learning.
-    
+
     We exploit a connection between UMAP and t-SNE found in Böhm et al [2], which states that you
     can make embeddings that look very similar to UMAP by performing t-SNE with exaggeration term 
     (in addition to the usual early exaggeration done by t-SNE).
-    
+
     For this approximation, a=b=1
     Need to figure out how to connect UMAP parameters to our sklearn t-SNE ones
     UMAP parameters here: https://umap-learn.readthedocs.io/en/latest/api.html
     specifically: n_neighbors=15, learning_rate=1.0
 
     Following [2], we set the early exaggeration to 12 and exaggeration to 4.
-    
+
     Note that the connection between t-SNE and UMAP is further explored in Damrich et al. [3].
 
     ----------
@@ -143,20 +143,20 @@ class UMAP(TSNE):
                  metric="euclidean", init="random", verbose=0,
                  random_state=None, method='barnes_hut', angle=0.5,
                  attr='none', checkpoint_every=[], n_jobs=None):
-        super().__init__(n_components=n_components, 
+        super().__init__(n_components=n_components,
                          perplexity=perplexity,
-                         early_exaggeration=12.0, 
-                         exaggeration=1.0, 
-                         learning_rate=learning_rate, 
+                         early_exaggeration=12.0,
+                         exaggeration=1.0,
+                         learning_rate=learning_rate,
                          n_iter=n_iter,
-                         n_iter_without_progress=n_iter_without_progress, 
+                         n_iter_without_progress=n_iter_without_progress,
                          min_grad_norm=min_grad_norm,
-                         metric=metric, 
-                         init=init, 
+                         metric=metric,
+                         init=init,
                          verbose=verbose,
-                         random_state=random_state, 
-                         method='barnes_hut', 
+                         random_state=random_state,
+                         method='barnes_hut',
                          angle=0.5,
-                         attr=attr, 
-                         checkpoint_every=checkpoint_every, 
+                         attr=attr,
+                         checkpoint_every=checkpoint_every,
                          n_jobs=n_jobs)
