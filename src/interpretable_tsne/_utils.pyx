@@ -7,11 +7,10 @@
 #
 # License: BSD 3 clause
 
-from libc.stdlib cimport free
-from libc.stdlib cimport realloc
-from libc.math cimport log as ln
-
 cimport numpy as cnp
+from libc.math cimport log as ln
+from libc.stdlib cimport free, realloc
+
 cnp.import_array()
 
 #from ..utils._random cimport our_rand_r

@@ -8,9 +8,11 @@
 # Author: Matthew Scicluna -- <mattcscicluna@gmail.com>
 # Licence: BSD 3 clause (C) 2021
 
-from libc cimport math
 cimport cython
+from libc cimport math
+
 import numpy as np
+
 cimport numpy as np
 from libc.stdio cimport printf
 
